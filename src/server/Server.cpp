@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mbouthai <mbouthai@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/07/25 04:11:17 by mbouthai          #+#    #+#             */
-/*   Updated: 2023/07/26 03:22:59 by mbouthai         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Server.hpp"
 #include <sys/socket.h>
 #include <poll.h>
@@ -17,26 +5,15 @@
 #include <cstdlib>
 #include <fcntl.h>
 
-Server::Server() 
-    : _name("default"),
-    _password("default"),
-    _port(6667)
-{}
-
 Server::~Server() {}
+
+Server::Server(size_t port, const std::string password):_port(port), _password(password) {}
 
 Server::Server(const Server& instance)
     : _name(instance.getName()),
     _password(instance.getPassword()),
     _port(instance.getPort())
 {}
-
-Server& Server::operator=(const Server& instance)
-{
-    if (this == &instance)
-        return (*this);
-    return (*this);
-}
 
 const std::string&    Server::getName() const
 {
@@ -63,45 +40,72 @@ std::vector<Channel *>&    Server::getChannels()
     return (this->_channels);
 }
 
-
-void    Server::configure()
+int	Server::initListener(void)
 {
-    sockaddr_in address;
-    pollfd      poll;
-    int         bindStatus;
-    int         listenStatus;    
-    int         maxUsers = 15;
-    // Creation socket for the server and check it's status 
-    poll.fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (poll.fd < 0)
-        (std::cerr << "Error : Creation of Socket Failed !" << std::endl, exit(EXIT_FAILURE));
-    {
-        int enabled = 1;
-        setsockopt (poll.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled) );
-    }// Set the socket to non-blocking mode
-    fcntl(poll.fd, F_SETFL, O_NONBLOCK);
-    
-    // Filling the struct members with data 
-    address.sin_family      = AF_INET;
-    address.sin_port        = htons(this->_port);
-    address.sin_addr.s_addr = INADDR_ANY;
-    
-    //  Set the events member of poll_fd to monitor for input and output events
-    poll.events  = POLLIN | POLLOUT;
-    poll.revents = 0;
+	sockaddr_in	address;
+	int		listener;
+	int		opt = 1;
 
-    // Bind the socket to the IP address and port of the server and check the status 
-    bindStatus = bind(poll.fd, (struct sockaddr *)&address, sizeof(address));
-    if (bindStatus < 0)
-        (std::cerr << "Error : Binding Failed !" << std::endl, exit(EXIT_FAILURE));
-    
-    // Listing for incoming connection requests and check the status
-    listenStatus = listen(poll.fd, maxUsers);
-    if (listenStatus < 0)
-        (std::cerr << "Error : Listing Failed !" << std::endl, exit(EXIT_FAILURE));
-    
-    // push the SocketFd struct to the victor
-    this->_fds.push_back(socketFd);
+	listener = socket(AF_INET, SOCK_STREAM, 0);
+
+	fcntl(listener, F_SETFL, O_NONBLOCK);
+	setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+	address.sin_family = AF_INET;
+	address.sin_port  = htons(this->_port);
+	address.sin_addr.s_addr = INADDR_ANY;
+
+	bind(listener, (sockaddr *)&address, sizeof(address));
+	listen(listener, SOMAXCONN);
+
+	return(listener);
 }
 
-std::ostream&	operator<<(std::ostream& outputStream, const Server& server) {}
+void	Server::startServer(void)
+{
+	std::vector<struct pollfd> pfds;
+	struct	pollfd	tmp_pfd;
+	int	fds_count;
+
+	tmp_pfd.fd = this->initListener();
+	tmp_pfd.events = POLLIN;
+
+	pfds.push_back(tmp_pfd);
+
+	while (1)
+	{
+		int fds_inc = 0;
+		fds_count = poll(&pfds[0], pfds.size(), -1);
+
+		for (int inx = 0; inx < pfds.size(); inx++)
+		{
+			if (fds_count == fds_inc)
+				break;
+			if (pfds[inx].revents & POLLIN)
+			{
+				if (pfds[inx].fd == pfds[0].fd)
+				{
+					tmp_pfd.fd = accept(pfds[0].fd, NULL, NULL);
+					if (this->registerUser(tmp_pfd.fd))
+						pfds.push_back(tmp_pfd)
+					else
+					{
+						/* Announce that the user failed the registration */
+						close(tmp_pfd.fd);
+					}
+
+				}
+				else
+				{
+					if (!this->handleUser(pfds[inx].fd))
+					{
+						/* Announce that the user dropped the connection */
+						close(pfds[inx].fd);
+						pfds[inx].fd = -1;
+					}
+				}
+				fds_inc++;
+			}
+		}
+	}
+}
