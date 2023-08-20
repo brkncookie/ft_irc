@@ -63,9 +63,10 @@ void	establish_connection(void)
 		fds_count = poll(&pfds[0], pfds.size(), -1);
 		for (long long inx = 0; inx < pfds.size(); inx++)
 		{
+			printf("%d \n", pfds.size());
 			if (fds_count == inc_fds)
 				break;
-			if (pfds[inx].revents & POLLIN)
+			if (pfds[inx].revents & (POLLIN | POLLHUP))
 			{
 				if (pfds[inx].fd == pfds[0].fd)
 				{
@@ -78,7 +79,7 @@ void	establish_connection(void)
 					{
 						std::cout << "client " << pfds[inx].fd << " dropped the connection" << std::endl;
 						close(pfds[inx].fd);
-						pfds[inx].fd = -1;
+						pfds.erase(pfds.begin() + inx);
 					}
 				}
 				inc_fds++;
@@ -92,46 +93,3 @@ int main(void)
 	establish_connection();
 	return (0);
 }
-/* void	establish_connection(void) */
-/* { */
-/* 	fd_set	main_fds; */
-/* 	fd_set	read_fds; */
-/* 	int		max_fd; */
-/* 	int		listener; */
-/* 	int		client; */
-
-/* 	listener = init_listener(); */
-/* 	FD_ZERO(&main_fds); */
-/* 	FD_ZERO(&read_fds); */
-
-/* 	FD_SET(listener, &main_fds); */
-
-/* 	max_fd = listener + 1; */
-/* 	while (1) */
-/* 	{ */
-/* 		read_fds = main_fds; */
-/* 		select(max_fd, &read_fds, NULL, NULL, NULL); */
-/* 		for (int inx = 3; inx < max_fd; inx++) */
-/* 		{ */
-/* 			if (FD_ISSET(inx, &read_fds)) */
-/* 			{ */
-/* * 				if (inx == listener) *1/ */
-/* 				{ */
-/* 					client = accept(listener, NULL, NULL); */
-/* 					FD_SET(client, &main_fds); */
-/* 					if (client > max_fd - 1) */
-/* 						max_fd = client + 1; */
-/* 				} */
-/* 				else */
-/* 				{ */
-/* 					if (!handle_client(inx)) */
-/* 					{ */
-/* 						std::cout << "client " << inx << " dropped the connection" << std::endl; */
-/* 						close(inx); */
-/* 						FD_CLR(inx, &main_fds); */
-/* 					} */
-/* 				} */
-/* 			} */
-/* 		} */
-/* 	} */
-/* } */
