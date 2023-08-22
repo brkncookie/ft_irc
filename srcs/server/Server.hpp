@@ -15,7 +15,7 @@ class Server
 		std::map<int, User *>		_users;
 		std::vector<Channel *>	_channels;
 		int	initListener();
-		void	registerUser(int user_fd);
+		void	registerUser(std::string	&cmd, User	*user);
 		void	handleUser(int user_fd);
 	public:
 		~Server();

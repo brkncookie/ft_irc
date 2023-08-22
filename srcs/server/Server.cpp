@@ -105,9 +105,11 @@ void	Server::startServer(void)
 	}
 }
 
-void	Server::handleUser(int user_fd)
+int	Server::handleUser(int user_fd)
 {
 	std::string	*strings;
+	std::string	cmd;
+	std::stringstream	strm;
 	std::map<int, User *>::iterator itr;
 
 	itr = this->_users.find(user_fd);
@@ -118,12 +120,53 @@ void	Server::handleUser(int user_fd)
 		this->_users[user_fd]->setUserfd(user_fd);
 	}
 
-	/* strings = parseIRCmd(this->_users[user_fd]); */
+	strings = parseIRCmd(this->_users[user_fd]);
 
-	strings = new std::string[3];
-	for (int i = 0; std::string[i]; i++)
+	for (int i = 0; strings[i]; i++)
 	{
 		/* loop through each line and identify the CMD in it to call the appropriate function for it */
-
+		strm.str(strings[i]);
+		strm >> cmd;
+		if (cmd[0] == ':')
+			strm >> cmd;
+		if (cmd == "NICK" || cmd == "PASS" || cmd == "USER")
+			this->registerUser(strings[i], this->_users[user_fd]);
+		else if (!(cmd == "NICK" || cmd == "PASS" || cmd == "USER") && !this->_users[user_fd]->isAuthenticated())
+		{
+			std::string reply = std::string(this->getName) + std::string(" ") + std::string("451 :You have not registered");
+			send(this->_users[user_fd]->getUserfd, reply.c_str(), reply.size(), 0);
+		}
 	}
+	return (1);
+}
+
+void	Server::registerUser(std::string &cmd, User *user)
+{
+	std::stringstream	strm;
+
+	strm.str(cmd)
+	strm >> cmd;
+	if (cmd[0] == ':')
+		strm >> cmd;
+
+	if (cmd == std::string("NICK"))
+	{
+		/* first check if the given nickname already exists in our database, aka not a unique nickname */
+
+		/* if the nickname is unique then set it or change it (and declare the change)
+		   depending on whether the user is a new user or alr an old one */
+	}
+	else if (cmd == std::string("USER"))
+	{
+		/* set the parameters in this command accordingly only if the user is not yet authenticated, otherwise yell a 462 error */
+	}
+	else if (cmd == std::string("PASS"))
+	{
+		/* first check if the user is not authenticated, otherwise yell a 462 error */
+		/* check if the password is correct before setting it*/
+	}
+
+	if (!user->getUsername().empty() && !user->getNickname().empty() && !user->getPassword().empty() && !user->isAuthenticated())
+		/* if all of these conditions are true, send a reply(ies) indicating the succesful authentication of the user */
+
 }
