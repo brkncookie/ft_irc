@@ -1,4 +1,4 @@
-#include "Server.hpp"
+#include "../include/Server.hpp"
 #include <sys/socket.h>
 #include <poll.h>
 #include <iostream>
@@ -7,12 +7,9 @@
 
 Server::~Server() {}
 
-Server::Server(size_t port, const std::string password):_port(port), _password(password) {}
+Server::Server(const size_t port, const std::string password):_port(port), _password(password), _name("ircserv.1337.ma") {}
 
-Server::Server(const Server& instance)
-    : _name(instance.getName()),
-    _password(instance.getPassword()),
-    _port(instance.getPort())
+Server::Server(const Server& instance): _port(instance.getPort()), _password(instance.getPassword()), _name(instance.getName())
 {}
 
 const std::string&    Server::getName() const
@@ -25,12 +22,12 @@ const std::string&    Server::getPassword() const
     return (this->_password);
 }
 
-const size_t  Server::getPort() const
+const size_t		Server::getPort() const
 {
     return (this->_port);
 }
 
-std::vector<User *>&  Server::getUsers()
+std::map<int, User *>&		Server::getUsers()
 {
     return (this->_users);
 }
@@ -86,7 +83,7 @@ void	Server::startServer(void)
 				if (pfds[inx].fd == pfds[0].fd)
 				{
 					tmp_pfd.fd = accept(pfds[0].fd, NULL, NULL);
-					pfds.push_back(tmp_pfd)
+					pfds.push_back(tmp_pfd);
 				}
 				else
 				{
@@ -105,8 +102,38 @@ void	Server::startServer(void)
 	}
 }
 
+std::vector<std::string> *Server::parseIRCmd(User *user)
+{
+	char	buff[1024];
+	std::string	str;
+	std::stringstream	strm;
+	std::vector<std::string>	*vec_of_strings = new std::vector<std::string>;
+	int	first_time = 1;
+
+	if (recv(user->getUserfd(), buff, 1024, 0) < 1)
+		return (delete vec_of_strings, NULL);
+	strm.str(std::string(buff));
+	while(std::getline(strm, str))
+	{
+		if (first_time && !user->getMsgpartial().emtpy())
+		{
+			str = user->getMsgpartial() + str;
+			user->setMsgpartial(std::string(""));
+			first_time = 0;
+		}
+		if (str[str.size() - 1] != '\r')
+		{
+			user->setMsgpartial(str);
+			break;
+		}
+		vec_of_strings->push_back(str);
+	}
+	return(vec_of_strings);
+}
+
 int	Server::handleUser(int user_fd)
 {
+	std::vector<std::string> *vec_of_strings;
 	std::string	*strings;
 	std::string	cmd;
 	std::stringstream	strm;
@@ -120,9 +147,11 @@ int	Server::handleUser(int user_fd)
 		this->_users[user_fd]->setUserfd(user_fd);
 	}
 
-	strings = parseIRCmd(this->_users[user_fd]);
+	if (!(vec_of_strings = parseIRCmd(this->_users[user_fd])));
+		return (0);
+	strings = &(*vec_of_string)[0];
 
-	for (int i = 0; strings[i]; i++)
+	for (int i = 0; i < vec_of_strings->size(); i++)
 	{
 		/* loop through each line and identify the CMD in it to call the appropriate function for it */
 		strm.str(strings[i]);

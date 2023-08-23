@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Channel.hpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mbouthai <mbouthai@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/07/19 02:34:51 by mbouthai          #+#    #+#             */
-/*   Updated: 2023/08/19 11:19:21 by mbouthai         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
 # include <iostream>
@@ -25,7 +13,7 @@ class Channel
         size_t                              _maximumCapacity;
         std::vector<User *>                 _users;
         bool                                _inviteOnly;
-        
+
     public:
         Channel();
         ~Channel();
@@ -38,7 +26,7 @@ class Channel
         std::vector<User *>&            getUsers();
         bool                            isPrivate() const;
         bool                            isInviteOnly() const;
-        
+
         void    setName(std::string name);
         void    setTopic(std::string topic);
         void    setMaximumCapacity(size_t capacity);

@@ -1,17 +1,6 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mbouthai <mbouthai@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/07/19 02:26:34 by mbouthai          #+#    #+#             */
-/*   Updated: 2023/07/19 03:15:13 by mbouthai         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <iostream>
 #include <cstdlib>
+#include <"../include/Server.hpp">
 
 static bool isNumber(char *str)
 {
@@ -32,18 +21,18 @@ int main(int argc, char **argv)
 
     if (argc != 3)
         return (std::cerr << "[Error]: Invalid usage!\n"
-            << "Proper usage: (./ircserv <PORT> <PASSWORD>)" 
+            << "Proper usage: (./ircserv <PORT> <PASSWORD>)"
             << std::endl,
             EXIT_FAILURE);
     if (!isNumber(argv[1]))
         return (std::cerr << "[Error]: Port must be a number!\n"
-                << "Proper usage: (./ircserv <PORT: Positive number> <PASSWORD: String>)" 
+                << "Proper usage: (./ircserv <PORT: Positive number> <PASSWORD: String>)"
                 << std::endl,
                 EXIT_FAILURE);
     port = atoi(argv[1]);
     if (port < 0)
         return (std::cerr << "[Error]: Invalid port!\n"
-            << "Proper usage: (./ircserv <PORT: Positive number> <PASSWORD: String>)" 
+            << "Proper usage: (./ircserv <PORT: Positive number> <PASSWORD: String>)"
             << std::endl,
             EXIT_FAILURE);
     std::cout << "Port: "
@@ -51,5 +40,8 @@ int main(int argc, char **argv)
         << "\nPassword: "
         << argv[2]
         << std::endl;
+
+    Server	server((size_t)port, std::string(argv[2]));
+    server.startServer();
     return (0);
 }

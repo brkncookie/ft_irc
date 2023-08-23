@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   User.hpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mbouthai <mbouthai@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/07/19 02:34:53 by mbouthai          #+#    #+#             */
-/*   Updated: 2023/08/19 11:18:55 by mbouthai         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
 # include <iostream>
@@ -40,12 +28,12 @@ class User
         std::string&    getHostname() const;
         std::string&    getPassword() const;
         std::string&    getMsgpartial() const;
-        std::string&    getUserfd() const;
+        int		getUserfd() const;
         bool            isAuthenticated() const;
         bool            isOperator() const;
 
         void    setUsername(std::string username);
-        void    setNickname(std::string username);
+        void    setNickname(std::string nickname);
         void    setFullname(std::string fullname);
         void    setHostname(std::string hostname);
         void    setPassword(std::string password);
