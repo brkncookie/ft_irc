@@ -34,9 +34,9 @@ class Server
 		Server(const size_t port, const std::string password);
 		Server(const Server& instance);
 		Server& operator=(const Server& instance);
-		const std::string&			getName() const;
-		const std::string&			getPassword() const;
-		const size_t				getPort() const;
+		std::string			getName() const;
+		std::string			getPassword() const;
+		size_t				getPort() const;
 		std::map<int, User *>&		getUsers();
 		std::vector<Channel *>&	getChannels();
 

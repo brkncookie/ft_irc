@@ -4,30 +4,69 @@ Channel::Channel() {}
 
 Channel::~Channel() {}
 
-Channel::Channel(const Channel& instance) {}
+Channel::Channel(const Channel& instance)
+{
+	(void) instance;
+}
 
-Channel& Channel::operator=(const Channel& instance) {}
-
-
-std::string&                    Channel::getName() const {}
-
-std::string&                    Channel::getTopic() const {}
-
-size_t                          Channel::getMaximumCapacity() const {}
-
-std::vector<User *>&            Channel::getUsers() {}
-
-bool                            Channel::isPrivate() const {}
-
-bool                            Channel::isInviteOnly() const {}
+Channel& Channel::operator=(const Channel& instance)
+{
+	(void) instance;
+	return (*this);
+}
 
 
-void    Channel::setName(std::string name) {}
+std::string                   Channel::getName() const
+{
+	return (this->_name);
+}
 
-void    Channel::setTopic(std::string topic) {}
+std::string                    Channel::getTopic() const
+{
+	return (this->_topic);
+}
+size_t                          Channel::getMaximumCapacity() const
+{
+	return (this->_maximumCapacity);
+}
 
-void    Channel::setMaximumCapacity(size_t capacity) {}
+std::vector<User *>&            Channel::getUsers()
+{
+	return (this->_users);
+}
 
-void    Channel::setInviteOnly(bool inviteOnly) {}
+bool                            Channel::isPrivate() const
+{
+	return (this->_private);
+}
 
-std::ostream&	operator<<(std::ostream& outputStream, const Channel& channel) {}
+bool                            Channel::isInviteOnly() const
+{
+	return (this->_inviteOnly);
+}
+
+
+void    Channel::setName(std::string name)
+{
+	this->_name = name;
+}
+
+void    Channel::setTopic(std::string topic)
+{
+	this->_topic = topic;
+}
+
+void    Channel::setMaximumCapacity(size_t capacity)
+{
+	this->_maximumCapacity = capacity;
+}
+
+void    Channel::setInviteOnly(bool inviteOnly)
+{
+	this->_inviteOnly = inviteOnly;
+}
+
+void    Channel::setPrivate(bool _private)
+{
+	this->_private = _private;
+}

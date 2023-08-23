@@ -22,12 +22,12 @@ class User
         User(const User& instance);
         User& operator=(const User& instance);
 
-        std::string&    getUsername() const;
-        std::string&    getNickname() const;
-        std::string&    getFullname() const;
-        std::string&    getHostname() const;
-        std::string&    getPassword() const;
-        std::string&    getMsgpartial() const;
+        std::string    getUsername() const;
+        std::string    getNickname() const;
+        std::string    getFullname() const;
+        std::string    getHostname() const;
+        std::string    getPassword() const;
+        std::string    getMsgpartial() const;
         int		getUserfd() const;
         bool            isAuthenticated() const;
         bool            isOperator() const;

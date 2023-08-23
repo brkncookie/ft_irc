@@ -12,17 +12,17 @@ Server::Server(const size_t port, const std::string password):_port(port), _pass
 Server::Server(const Server& instance): _port(instance.getPort()), _password(instance.getPassword()), _name(instance.getName())
 {}
 
-const std::string&    Server::getName() const
+std::string    Server::getName() const
 {
     return (this->_name);
 }
 
-const std::string&    Server::getPassword() const
+std::string    Server::getPassword() const
 {
     return (this->_password);
 }
 
-const size_t		Server::getPort() const
+size_t		Server::getPort() const
 {
     return (this->_port);
 }
@@ -74,7 +74,7 @@ void	Server::startServer(void)
 		int fds_inc = 0;
 		fds_count = poll(&pfds[0], pfds.size(), -1);
 
-		for (int inx = 0; inx < pfds.size(); inx++)
+		for (unsigned int inx = 0; inx < pfds.size(); inx++)
 		{
 			if (fds_count == fds_inc)
 				break;
@@ -92,7 +92,7 @@ void	Server::startServer(void)
 						/* Announce that the user dropped the connection */
 						close(pfds[inx].fd);
 						delete this->_users[pfds[inx].fd];
-						this->_users.erase[pfds[inx].fd];
+						this->_users.erase(pfds[inx].fd);
 						pfds.erase(pfds.begin() + inx);
 					}
 				}
@@ -111,11 +111,15 @@ std::vector<std::string> *Server::parseIRCmd(User *user)
 	int	first_time = 1;
 
 	if (recv(user->getUserfd(), buff, 1024, 0) < 1)
-		return (delete vec_of_strings, NULL);
+	{
+		delete vec_of_strings;
+		return (NULL);
+	}
 	strm.str(std::string(buff));
 	while(std::getline(strm, str))
 	{
-		if (first_time && !user->getMsgpartial().emtpy())
+		std::cout << str << std::endl;
+		if (first_time && !user->getMsgpartial().empty())
 		{
 			str = user->getMsgpartial() + str;
 			user->setMsgpartial(std::string(""));
@@ -146,12 +150,11 @@ int	Server::handleUser(int user_fd)
 		this->_users[user_fd] = new User();
 		this->_users[user_fd]->setUserfd(user_fd);
 	}
-
-	if (!(vec_of_strings = parseIRCmd(this->_users[user_fd])));
+	if (!(vec_of_strings = parseIRCmd(this->_users[user_fd])))
 		return (0);
-	strings = &(*vec_of_string)[0];
+	strings = &(*vec_of_strings)[0];
 
-	for (int i = 0; i < vec_of_strings->size(); i++)
+	for (unsigned int i = 0; i < vec_of_strings->size(); i++)
 	{
 		/* loop through each line and identify the CMD in it to call the appropriate function for it */
 		strm.str(strings[i]);
@@ -164,7 +167,7 @@ int	Server::handleUser(int user_fd)
 		{
 			std::string reply = std::string(":").append(this->getName()) + \
 			std::string(" 451 :You have not registered") + std::string("\r\n");
-			send(this->_users[user_fd]->getUserfd, reply.c_str(), reply.size(), 0);
+			send(this->_users[user_fd]->getUserfd(), reply.c_str(), reply.size(), 0);
 		}
 	}
 	return (1);
@@ -175,7 +178,7 @@ void	Server::registerUser(std::string &cmd, User *user)
 	std::stringstream	strm;
 	std::string reply;
 
-	strm.str(cmd)
+	strm.str(cmd);
 	strm >> cmd;
 	if (cmd[0] == ':')
 		strm >> cmd;
@@ -186,12 +189,12 @@ void	Server::registerUser(std::string &cmd, User *user)
 		/* if the nickname is unique then set it or change it (and declare the change)
 		   depending on whether the user is a new user or alr an old one */
 		strm >> cmd;
-		for(std::map<int, User*> itr = this->_users.begin(); itr != this->_users.end(); itr++)
-			if (itr->getNickname() == cmd)
+		for(std::map<int, User*>::iterator itr = this->_users.begin(); itr != this->_users.end(); itr++)
+			if (itr->second->getNickname() == cmd)
 			{
 				reply = std::string(":").append(this->getName()) + std::string(" 433 ") + cmd \
 				+ std::string(" :Nickname is already in use.") + std::string("\r\n");
-				send(user[user_fd]->getUserfd, reply.c_str(), reply.size(), 0);
+				send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 				return ;
 			}
 		user->setNickname(cmd);
@@ -199,7 +202,7 @@ void	Server::registerUser(std::string &cmd, User *user)
 		{
 			reply = std::string(":").append(this->getName()) + std::string(" 001 ") + std::string(user->getNickname()) \
 			+ std::string(" :Welcome to the IRC Network, ") + std::string(user->getNickname()) + std::string("\r\n");
-			send(user[user_fd]->getUserfd, reply.c_str(), reply.size(), 0);
+			send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 			/* either the server or the user afterwards notifies the channel/memeber_of_a_private_conversation of the nickname change */
 		}
 	}
@@ -209,7 +212,7 @@ void	Server::registerUser(std::string &cmd, User *user)
 		{
 			std::string reply = std::string(":").append(this->getName()) + \
 			std::string(" 462 :Unauthorized command (already registered)") + std::string("\r\n");
-			send(user[user_fd]->getUserfd, reply.c_str(), reply.size(), 0);
+			send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 			return ;
 		}
 		strm >> cmd;
@@ -217,7 +220,7 @@ void	Server::registerUser(std::string &cmd, User *user)
 		strm >> cmd;
 		user->setHostname(cmd);
 		strm >> cmd;
-		user->setFullname(std::string(strm.str().c_str() + strm.tellg + 1));
+		user->setFullname(std::string(strm.str().c_str() + strm.tellg() + 1));
 		/* set the parameters in this command accordingly only if the user is not yet authenticated, otherwise yell a 462 error */
 	}
 	else if (cmd == std::string("PASS"))
@@ -229,17 +232,17 @@ void	Server::registerUser(std::string &cmd, User *user)
 		{
 			std::string reply = std::string(":").append(this->getName()) + \
 			std::string(" 462 :Unauthorized command (already registered)") + std::string("\r\n");
-			send(user[user_fd]->getUserfd, reply.c_str(), reply.size(), 0);
+			send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 			return ;
 		}
 		if (this->getPassword() != cmd)
 		{
-			std::string reply = std::string(":").append(this->getName) + \
+			std::string reply = std::string(":").append(this->getName()) + \
 			std::string(" 464 :Password incorrect") + std::string("\r\n");
-			send(user[user_fd]->getUserfd, reply.c_str(), reply.size(), 0);
+			send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 			return ;
 		}
-		user->setPassoword(cmd);
+		user->setPassword(cmd);
 	}
 
 	if (!user->getUsername().empty() && !user->getNickname().empty() && !user->getPassword().empty() && !user->isAuthenticated())
@@ -249,18 +252,18 @@ void	Server::registerUser(std::string &cmd, User *user)
 
 		reply = std::string(":").append(this->getName()) + std::string(" 001 ") + std::string(user->getNickname()) \
 		+ std::string(" :Welcome to the IRC Network, ") + std::string(user->getNickname()) + std::string("\r\n");
-		send(user[user_fd]->getUserfd, reply.c_str(), reply.size(), 0);
+		send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 
 		reply = std::string(":").append(this->getName()) + std::string(" 002 ") + std::string(user->getNickname()) \
 		+ std::string(" :Your host is ") + std::string(this->getName()) + std::string(", running version 1.9") + std::string("\r\n");
-		send(user[user_fd]->getUserfd, reply.c_str(), reply.size(), 0);
+		send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 
 		reply = std::string(":").append(this->getName()) + std::string(" 003 ") + std::string(user->getNickname()) \
 		+ std::string(" :This server was created 12 12 2012") + std::string("\r\n");
-		send(user[user_fd]->getUserfd, reply.c_str(), reply.size(), 0);
+		send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 
 		reply = std::string(":").append(this->getName()) + std::string(" 004 ") + std::string(user->getNickname()) +\
 		std::string(" ").append(this->getName()) + std::string("  1.9 itkol") + std::string("\r\n");
-		send(user[user_fd]->getUserfd, reply.c_str(), reply.size(), 0);
+		send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 	}
 }

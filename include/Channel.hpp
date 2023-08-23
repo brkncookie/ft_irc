@@ -13,6 +13,7 @@ class Channel
         size_t                              _maximumCapacity;
         std::vector<User *>                 _users;
         bool                                _inviteOnly;
+        bool                                _private;
 
     public:
         Channel();
@@ -20,8 +21,8 @@ class Channel
         Channel(const Channel& instance);
         Channel& operator=(const Channel& instance);
 
-        std::string&                    getName() const;
-        std::string&                    getTopic() const;
+        std::string                    getName() const;
+        std::string                    getTopic() const;
         size_t                          getMaximumCapacity() const;
         std::vector<User *>&            getUsers();
         bool                            isPrivate() const;
@@ -31,6 +32,7 @@ class Channel
         void    setTopic(std::string topic);
         void    setMaximumCapacity(size_t capacity);
         void    setInviteOnly(bool inviteOnly);
+	void    setPrivate(bool _private);
 };
 
 std::ostream&	operator<<(std::ostream& outputStream, const Channel& channel);
