@@ -160,7 +160,7 @@ void	Server::registerUser(std::string &cmd, User *user)
 		for(std::map<int, User*> itr = this->_users.begin(); itr != this->_users.end(); itr++)
 			if (itr->getNickname() == cmd)
 			{
-				reply = std::string(":").append(this->getName()) + std::string(" 443 ") + cmd \
+				reply = std::string(":").append(this->getName()) + std::string(" 433 ") + cmd \
 				+ std::string(" :Nickname is already in use.") + std::string("\r\n");
 				send(user[user_fd]->getUserfd, reply.c_str(), reply.size(), 0);
 				return ;
@@ -171,7 +171,7 @@ void	Server::registerUser(std::string &cmd, User *user)
 			reply = std::string(":").append(this->getName()) + std::string(" 001 ") + std::string(user->getNickname()) \
 			+ std::string(" :Welcome to the IRC Network, ") + std::string(user->getNickname()) + std::string("\r\n");
 			send(user[user_fd]->getUserfd, reply.c_str(), reply.size(), 0);
-			/* user afterwards notifies the channel/memeber_of_a_private_conversation of the nickname change */
+			/* either the server or the user afterwards notifies the channel/memeber_of_a_private_conversation of the nickname change */
 		}
 	}
 	else if (cmd == std::string("USER"))
