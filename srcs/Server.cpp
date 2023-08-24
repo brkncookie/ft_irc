@@ -110,6 +110,7 @@ std::vector<std::string> *Server::parseIRCmd(User *user)
 	std::vector<std::string>	*vec_of_strings = new std::vector<std::string>;
 	int	first_time = 1;
 
+	bzero(buff, 1024);
 	if (recv(user->getUserfd(), buff, 1024, 0) < 1)
 	{
 		delete vec_of_strings;
@@ -118,7 +119,6 @@ std::vector<std::string> *Server::parseIRCmd(User *user)
 	strm.str(std::string(buff));
 	while(std::getline(strm, str))
 	{
-		std::cout << str << std::endl;
 		if (first_time && !user->getMsgpartial().empty())
 		{
 			str = user->getMsgpartial() + str;
@@ -130,7 +130,7 @@ std::vector<std::string> *Server::parseIRCmd(User *user)
 			user->setMsgpartial(str);
 			break;
 		}
-		vec_of_strings->push_back(str);
+		vec_of_strings->push_back((str.erase(str.size() - 1, 1)));
 	}
 	return(vec_of_strings);
 }
@@ -263,7 +263,7 @@ void	Server::registerUser(std::string &cmd, User *user)
 		send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 
 		reply = std::string(":").append(this->getName()) + std::string(" 004 ") + std::string(user->getNickname()) +\
-		std::string(" ").append(this->getName()) + std::string("  1.9 itkol") + std::string("\r\n");
+		std::string(" ").append(this->getName()) + std::string(" 1.9 itkol") + std::string("\r\n");
 		send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 	}
 }

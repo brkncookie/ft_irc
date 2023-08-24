@@ -13,6 +13,7 @@
 #include <sys/select.h>
 #include <vector>
 #include <poll.h>
+# include <string.h>
 #include <iostream>
 # include "Channel.hpp"
 # include "User.hpp"
