@@ -17,6 +17,7 @@
 #include <iostream>
 # include "Channel.hpp"
 # include "User.hpp"
+#include "../include/utils.hpp"
 
 class Server
 {

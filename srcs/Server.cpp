@@ -82,6 +82,7 @@ void	Server::startServer(void)
 			{
 				if (itr->revents & POLLHUP)
 				{
+					print_timestamped();
 					std::cout << "User with descriptor " << itr->fd << " disconnected" << std::endl;
 					close(itr->fd);
 					delete this->_users[itr->fd];
@@ -92,6 +93,7 @@ void	Server::startServer(void)
 				{
 					tmp_pfd.fd = accept(pfds[0].fd, NULL, NULL);
 					pfds.push_back(tmp_pfd);
+					print_timestamped();
 					std::cout << "User with descriptor " << tmp_pfd.fd << " initiated a connection" << std::endl;
 				}
 				else
@@ -99,6 +101,7 @@ void	Server::startServer(void)
 					if (!this->handleUser(itr->fd))
 					{
 						/* for compatibility with linux as POLLHUP doesn't work for linux */
+						print_timestamped();
 						std::cout << "User with descriptor " << itr->fd << " disconnected" << std::endl;
 						close(itr->fd);
 						delete this->_users[itr->fd];
@@ -127,7 +130,7 @@ std::vector<std::string> *Server::parseIRCmd(User *user)
 		return (NULL);
 	}
 	strm.str(std::string(buff));
-	while(std::getline(strm, str))
+	while(std::getline(strm, str) && !str.empty())
 	{
 		if (first_time && !user->getMsgpartial().empty())
 		{
@@ -163,7 +166,6 @@ int	Server::handleUser(int user_fd)
 	if (!(vec_of_strings = parseIRCmd(this->_users[user_fd])))
 		return (0);
 	strings = &(*vec_of_strings)[0];
-
 	for (unsigned int i = 0; i < vec_of_strings->size(); i++)
 	{
 		/* loop through each line and identify the CMD in it to call the appropriate function for it */
@@ -199,14 +201,14 @@ void	Server::registerUser(std::string &cmd, User *user)
 		/* if the nickname is unique then set it or change it (and declare the change)
 		   depending on whether the user is a new user or alr an old one */
 		strm >> cmd;
-		for(std::map<int, User*>::iterator itr = this->_users.begin(); itr != this->_users.end(); itr++)
-			if (itr->second->getNickname() == cmd)
-			{
-				reply = std::string(":").append(this->getName()) + std::string(" 433 ") + cmd \
-				+ std::string(" :Nickname is already in use.") + std::string("\r\n");
-				send(user->getUserfd(), reply.c_str(), reply.size(), 0);
-				return ;
-			}
+		/* for(std::map<int, User*>::iterator itr = this->_users.begin(); itr != this->_users.end(); itr++) */
+		/* 	if (itr->second->getNickname() == cmd) */
+		/* 	{ */
+		/* 		reply = std::string(":").append(this->getName()) + std::string(" 433 ") + cmd \ */
+		/* 		+ std::string(" :Nickname is already in use.") + std::string("\r\n"); */
+		/* 		send(user->getUserfd(), reply.c_str(), reply.size(), 0); */
+		/* 		return ; */
+		/* 	} */
 		user->setNickname(cmd);
 		if (user->isAuthenticated())
 		{
@@ -262,7 +264,8 @@ void	Server::registerUser(std::string &cmd, User *user)
 	if (!user->getUsername().empty() && !user->getNickname().empty() && !user->getPassword().empty() && !user->isAuthenticated())
 	{
 		/* set the user to authenticated and send replies indicating the succesful authentication of the user */
- 
+
+		print_timestamped();
 		std::cout << "User with descriptor " << user->getUserfd() << " succesfully authenticated"  << std::endl;
 		user->setAuthenticated(true);
 
