@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Werror -Wextra -std=c++98
+CFLAGS = -Wall -Werror -Wextra -std=c++98 -g
 CC = c++
 SRCS = srcs/Server.cpp srcs/Channel.cpp srcs/User.cpp srcs/main.cpp
 OBJS = $(addprefix objs/, $(SRCS:.cpp=.o))

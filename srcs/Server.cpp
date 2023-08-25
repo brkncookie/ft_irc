@@ -74,26 +74,36 @@ void	Server::startServer(void)
 		int fds_inc = 0;
 		fds_count = poll(&pfds[0], pfds.size(), -1);
 
-		for (unsigned int inx = 0; inx < pfds.size(); inx++)
+		for (std::vector<struct pollfd>::iterator itr = pfds.begin(); itr != pfds.end(); itr++)
 		{
 			if (fds_count == fds_inc)
 				break;
-			if (pfds[inx].revents & POLLIN)
+			if (itr->revents & (POLLIN | POLLHUP))
 			{
-				if (pfds[inx].fd == pfds[0].fd)
+				if (itr->revents & POLLHUP)
+				{
+					std::cout << "User with descriptor " << itr->fd << " disconnected" << std::endl;
+					close(itr->fd);
+					delete this->_users[itr->fd];
+					this->_users.erase(itr->fd);
+					pfds.erase(itr);
+				}
+				else if (itr->fd == pfds[0].fd)
 				{
 					tmp_pfd.fd = accept(pfds[0].fd, NULL, NULL);
 					pfds.push_back(tmp_pfd);
+					std::cout << "User with descriptor " << tmp_pfd.fd << " initiated a connection" << std::endl;
 				}
 				else
 				{
-					if (!this->handleUser(pfds[inx].fd))
+					if (!this->handleUser(itr->fd))
 					{
-						/* Announce that the user dropped the connection */
-						close(pfds[inx].fd);
-						delete this->_users[pfds[inx].fd];
-						this->_users.erase(pfds[inx].fd);
-						pfds.erase(pfds.begin() + inx);
+						/* for compatibility with linux as POLLHUP doesn't work for linux */
+						std::cout << "User with descriptor " << itr->fd << " disconnected" << std::endl;
+						close(itr->fd);
+						delete this->_users[itr->fd];
+						this->_users.erase(itr->fd);
+						pfds.erase(itr);
 					}
 				}
 				fds_inc++;
@@ -211,7 +221,10 @@ void	Server::registerUser(std::string &cmd, User *user)
 		if (user->isAuthenticated())
 		{
 			std::string reply = std::string(":").append(this->getName()) + \
-			std::string(" 462 :Unauthorized command (already registered)") + std::string("\r\n");
+			std::string(" 462 ").append(user->getNickname()) + \
+			std::string(" :Unauthorized command (already registered)") + std::string("\r\n");
+			/* std::string reply = std::string(":").append(this->getName()) + \ */
+			/* std::string(" 462 :Unauthorized command (already registered)") + std::string("\r\n"); */
 			send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 			return ;
 		}
@@ -231,7 +244,8 @@ void	Server::registerUser(std::string &cmd, User *user)
 		if (user->isAuthenticated())
 		{
 			std::string reply = std::string(":").append(this->getName()) + \
-			std::string(" 462 :Unauthorized command (already registered)") + std::string("\r\n");
+			std::string(" 462 ").append(user->getNickname()) + \
+			std::string(" :Unauthorized command (already registered)") + std::string("\r\n");
 			send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 			return ;
 		}
@@ -248,6 +262,8 @@ void	Server::registerUser(std::string &cmd, User *user)
 	if (!user->getUsername().empty() && !user->getNickname().empty() && !user->getPassword().empty() && !user->isAuthenticated())
 	{
 		/* set the user to authenticated and send replies indicating the succesful authentication of the user */
+ 
+		std::cout << "User with descriptor " << user->getUserfd() << " succesfully authenticated"  << std::endl;
 		user->setAuthenticated(true);
 
 		reply = std::string(":").append(this->getName()) + std::string(" 001 ") + std::string(user->getNickname()) \

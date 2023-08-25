@@ -63,11 +63,16 @@ void	establish_connection(void)
 		fds_count = poll(&pfds[0], pfds.size(), -1);
 		for (long long inx = 0; inx < pfds.size(); inx++)
 		{
-			printf("%d \n", pfds.size());
 			if (fds_count == inc_fds)
 				break;
 			if (pfds[inx].revents & (POLLIN | POLLHUP))
 			{
+				if (pfds[inx].revents & POLLHUP)
+				{
+					std::cout << "client " << pfds[inx].fd << " dropped the connection" << std::endl;
+					close(pfds[inx].fd);
+					pfds.erase(pfds.begin() + inx);
+				}
 				if (pfds[inx].fd == pfds[0].fd)
 				{
 					pfd.fd = accept(pfds[0].fd, NULL, NULL);
@@ -75,12 +80,13 @@ void	establish_connection(void)
 				}
 				else
 				{
-					if (!handle_client(pfds[inx].fd))
-					{
-						std::cout << "client " << pfds[inx].fd << " dropped the connection" << std::endl;
-						close(pfds[inx].fd);
-						pfds.erase(pfds.begin() + inx);
-					}
+					handle_client(pfds[inx].fd);
+					/* if (!handle_client(pfds[inx].fd)) */
+					/* { */
+					/* 	std::cout << "client " << pfds[inx].fd << " dropped the connection" << std::endl; */
+					/* 	close(pfds[inx].fd); */
+					/* 	pfds.erase(pfds.begin() + inx); */
+					/* } */
 				}
 				inc_fds++;
 			}
