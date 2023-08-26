@@ -3,4 +3,4 @@
 #include "Server.hpp"
 
 void print_timestamped(void);
-std::string &obtain_hostname(sockaddr_in user_addr);
+std::string &obtain_ipaddress(sockaddr_in user_addr);

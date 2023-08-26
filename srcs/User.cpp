@@ -31,9 +31,9 @@ std::string    User::getFullname() const
 	return (this->_fullname);
 }
 
-std::string    User::getHostname() const
+std::string    User::getIpaddress() const
 {
-	return (this->_hostname);
+	return (this->_ipaddress);
 }
 
 std::string    User::getPassword() const
@@ -76,10 +76,10 @@ void    User::setFullname(std::string fullname)
 	this->_fullname = fullname;
 }
 
-void    User::setHostname(std::string &hostname)
+void    User::setIpaddress(std::string &ipaddress)
 {
-	this->_hostname = hostname;
-	free(&hostname);
+	this->_ipaddress = ipaddress;
+	delete &ipaddress;
 }
 
 void    User::setPassword(std::string password)

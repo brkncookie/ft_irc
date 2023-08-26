@@ -103,6 +103,7 @@ void	Server::startServer(void)
 
 					/* check here for failure */
 					tmp_pfd.fd = accept(pfds[0].fd, (sockaddr *)&client, &sizeof_client);
+					fcntl(tmp_pfd.fd, F_SETFL, O_NONBLOCK);
 					clients_addr[tmp_pfd.fd] = client;
 					pfds.push_back(tmp_pfd);
 					print_timestamped();
@@ -175,7 +176,7 @@ int	Server::handleUser(int user_fd, sockaddr_in user_addr)
 	{
 		this->_users[user_fd] = new User();
 		this->_users[user_fd]->setUserfd(user_fd);
-		this->_users[user_fd]->setHostname(obtain_hostname(user_addr));
+		this->_users[user_fd]->setIpaddress(obtain_ipaddress(user_addr));
 	}
 	if (!(vec_of_strings = parseIRCmd(this->_users[user_fd])))
 		return (0);
@@ -189,7 +190,7 @@ int	Server::handleUser(int user_fd, sockaddr_in user_addr)
 			strm >> cmd;
 		if (cmd == "NICK" || cmd == "PASS" || cmd == "USER")
 			this->registerUser(strings[i], this->_users[user_fd]);
-		else if (!(cmd == "NICK" || cmd == "PASS" || cmd == "USER") && 
+		else if (!(cmd == "NICK" || cmd == "PASS" || cmd == "USER") &&
 				!this->_users[user_fd]->isAuthenticated())
 		{
 			std::string reply = std::string(":").append(this->getName()) + \
@@ -232,7 +233,7 @@ void	Server::registerUser(std::string &cmd, User *user)
 			std::string(user->getNickname()) + std::string(" :Welcome to the IRC Network, ") \
 			+ std::string(user->getNickname()) + std::string("\r\n");
 			send(user->getUserfd(), reply.c_str(), reply.size(), 0);
-			/* either the server or the user afterwards notifies the 
+			/* either the server or the user afterwards notifies the
 			 * channel/memeber_of_a_private_conversation of the nickname change */
 		}
 	}
@@ -286,10 +287,8 @@ void	Server::registerUser(std::string &cmd, User *user)
 		print_timestamped();
 		std::cout << "User with descriptor " << user->getUserfd() \
 		<< " succesfully authenticated and these are their attributes:" << std::endl;
-		std::cout << "Nickname: " << user->getNickname() << std::endl;
-		std::cout << "Username: " << user->getUsername() << std::endl;
-		std::cout << "Realname: " << user->getFullname() << std::endl;
-		std::cout << "Hostname: " << user->getHostname() << std::endl;
+		std::cout << "			Nickname: " << user->getNickname() << ", Username: " << user->getUsername() \
+		<< ", Realname: " << user->getFullname() <<  ", Ipaddress: " << user->getIpaddress() << std::endl;
 		user->setAuthenticated(true);
 
 		reply = std::string(":").append(this->getName()) + std::string(" 001 ") + \

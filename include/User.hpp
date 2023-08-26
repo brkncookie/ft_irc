@@ -8,7 +8,7 @@ class User
     private:
         std::string     _username;
         std::string     _fullname;
-        std::string     _hostname;
+        std::string     _ipaddress;
         std::string     _nickname;
         std::string     _password;
 	std::string	_msg_partial;
@@ -25,7 +25,7 @@ class User
         std::string    getUsername() const;
         std::string    getNickname() const;
         std::string    getFullname() const;
-        std::string    getHostname() const;
+        std::string    getIpaddress() const;
         std::string    getPassword() const;
         std::string    getMsgpartial() const;
         int		getUserfd() const;
@@ -35,7 +35,7 @@ class User
         void    setUsername(std::string username);
         void    setNickname(std::string nickname);
         void    setFullname(std::string fullname);
-        void    setHostname(std::string &hostname);
+        void    setIpaddress(std::string &ipaddress);
         void    setPassword(std::string password);
         void    setMsgpartial(std::string msgpartial);
         void    setUserfd(int user_fd);
