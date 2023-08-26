@@ -35,7 +35,7 @@ class User
         void    setUsername(std::string username);
         void    setNickname(std::string nickname);
         void    setFullname(std::string fullname);
-        void    setHostname(std::string hostname);
+        void    setHostname(std::string &hostname);
         void    setPassword(std::string password);
         void    setMsgpartial(std::string msgpartial);
         void    setUserfd(int user_fd);

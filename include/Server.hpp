@@ -15,9 +15,10 @@
 #include <poll.h>
 # include <string.h>
 #include <iostream>
+#include <arpa/inet.h>
 # include "Channel.hpp"
 # include "User.hpp"
-#include "../include/utils.hpp"
+# include "utils.hpp"
 
 class Server
 {
@@ -29,7 +30,7 @@ class Server
 		std::vector<Channel *>	_channels;
 		int	initListener();
 		void	registerUser(std::string	&cmd, User	*user);
-		int	handleUser(int user_fd);
+		int	handleUser(int user_fd, sockaddr_in user_addr);
 		std::vector<std::string> *parseIRCmd(User *user);
 	public:
 		~Server();

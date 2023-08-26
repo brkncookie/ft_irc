@@ -76,9 +76,10 @@ void    User::setFullname(std::string fullname)
 	this->_fullname = fullname;
 }
 
-void    User::setHostname(std::string hostname)
+void    User::setHostname(std::string &hostname)
 {
 	this->_hostname = hostname;
+	free(&hostname);
 }
 
 void    User::setPassword(std::string password)
