@@ -28,22 +28,24 @@ class Server
 		const std::string		_password;
 		const std::string		_name;
 		std::map<int, User *>		_users;
-		std::vector<Channel *>	_channels;
-		int	initListener();
-		void	registerUser(std::string	&cmd, User	*user);
-		void	sendMsg(std::string	&cmd, User	*user);
-		int	handleUser(int user_fd, sockaddr_in user_addr);
-		std::vector<std::string> *parseIRCmd(User *user);
+		std::vector<Channel *>		_channels;
+		int				initListener();
+		void				registerUser(std::string	&cmd, User	*user);
+		void				sendMsg(std::string	&cmd, User	*user);
+		void				joinChannel(std::string	&cmd, User	*user);
+		int				handleUser(int user_fd, sockaddr_in user_addr);
+		std::vector<std::string> 	*parseIRCmd(User *user);
 	public:
 		~Server();
 		Server(const size_t port, const std::string password);
 		Server(const Server& instance);
 		Server& operator=(const Server& instance);
+
 		std::string			getName() const;
 		std::string			getPassword() const;
 		size_t				getPort() const;
 		std::map<int, User *>&		getUsers();
-		std::vector<Channel *>&	getChannels();
+		std::vector<Channel *>&		getChannels();
 
 		void	startServer();
 };

@@ -1,6 +1,6 @@
 #include "../include/Channel.hpp"
 
-Channel::Channel() {}
+Channel::Channel():_inviteOnly(false), _topicOpr(false) {}
 
 Channel::~Channel() {}
 
@@ -35,9 +35,15 @@ std::vector<User *>&            Channel::getUsers()
 	return (this->_users);
 }
 
-bool                            Channel::isPrivate() const
+std::vector<User *>&            Channel::getChanop()
 {
-	return (this->_private);
+	return (this->_chanop);
+}
+
+
+bool                            Channel::isTopicOpr() const
+{
+	return (this->_topicOpr);
 }
 
 bool                            Channel::isInviteOnly() const
@@ -56,6 +62,11 @@ void    Channel::setTopic(std::string topic)
 	this->_topic = topic;
 }
 
+void    Channel::setPassword(std::string password)
+{
+	this->_password = password;
+}
+
 void    Channel::setMaximumCapacity(size_t capacity)
 {
 	this->_maximumCapacity = capacity;
@@ -66,7 +77,7 @@ void    Channel::setInviteOnly(bool inviteOnly)
 	this->_inviteOnly = inviteOnly;
 }
 
-void    Channel::setPrivate(bool _private)
+void    Channel::setTopicOpr(bool topicOpr)
 {
-	this->_private = _private;
+	this->_topicOpr = topicOpr;
 }

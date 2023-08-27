@@ -176,6 +176,8 @@ int	Server::handleUser(int user_fd, sockaddr_in user_addr)
 		}
 		else if (cmd == "PRIVMSG")
 			this->sendMsg(strings[i], this->_users[user_fd]);
+		else if (cmd == "JOIN")
+			this->joinChannel(strings[i], this->_users[user_fd]);
 	}
 	return (1);
 }

@@ -170,3 +170,72 @@ void	Server::sendMsg(std::string &cmd, User *user)
 		return ;
 	}
 }
+
+void	Server::joinChannel(std::string &cmd, User *user)
+{
+	std::string		target;
+	std::string		passowrd;
+	std::stringstream	targets;
+	std::stringstream	passowrds;
+	bool			create;
+	std::vector<Channel *>::iterator itr;
+
+	targets.str(cmd);
+	targets >> target;
+	targets >> target;
+	targets.str(target);
+
+	passowrds.str(cmd);
+	passowrds >> passowrd;
+	passowrds >> passowrd;
+	passowrds >> passowrd;
+	passowrds.str(passowrd);
+
+	while(std::getline(targets, target, ",") && !target.empty())
+	{
+		create = true;
+		for (int inx = 1; inx < target.size(); inx++)
+			target[inx] = std::tolower(target[inx]);
+		for (itr = this->_channels.begin(); itr != this->_channels.end(); itr++)
+			if (itr->getName() == target)
+			{
+				create = false;
+				break;
+			}
+		if (!create)
+		{
+			std::getline(passowrds, password, ",");
+			if (!password.empty() && itr.getPassword() != passowrd)
+			{
+				/* send a reply indicating that the password for the channel is incorrect */
+				break;
+			}
+			if (itr->getUsers().size() + 1 > itr->getMaximumCapacity)
+			{
+				/* send a reply indicating that the channel reached its maximum capacity */
+				break;
+			}
+			if (itr->isInviteOnly)
+			{
+				/* send a reply indicating that the channel is invite only */
+				break;
+			}
+			itr->getUsers().push_back(user);
+			/* send the appropriate replies when a user succesufully joins */
+		}
+		else
+		{
+			Channel	*channel = new Channel();
+			channel.setName(target);
+			std::getline(passowrds, password, ",");
+			if (!password.empty)
+				channel.setPassword(password);
+			/* not sure yet of the default maximum capacity of a channel */
+			channel.setMaximumCapacity(1337);
+			channel.getUsers().push_back(user);
+			channel.getChanop().push_back(user);
+			/* send the appropriate replies when a user succesufully create and joins */
+			this->_channels.push_back(channel);
+		}
+	}
+}
