@@ -1,6 +1,6 @@
 CFLAGS = -Wall -Werror -Wextra -std=c++98 -g
 CC = c++
-SRCS = srcs/Server.cpp srcs/Channel.cpp srcs/User.cpp srcs/main.cpp srcs/utils.cpp
+SRCS = srcs/Server.cpp srcs/Channel.cpp srcs/User.cpp srcs/main.cpp srcs/utils.cpp srcs/Commands.cpp
 OBJS = $(addprefix objs/, $(SRCS:.cpp=.o))
 RM = rm -rf
 NAME = ircserv

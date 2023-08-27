@@ -19,6 +19,7 @@
 # include "Channel.hpp"
 # include "User.hpp"
 # include "utils.hpp"
+#include <algorithm>
 
 class Server
 {
@@ -30,6 +31,7 @@ class Server
 		std::vector<Channel *>	_channels;
 		int	initListener();
 		void	registerUser(std::string	&cmd, User	*user);
+		void	sendMsg(std::string	&cmd, User	*user);
 		int	handleUser(int user_fd, sockaddr_in user_addr);
 		std::vector<std::string> *parseIRCmd(User *user);
 	public:
