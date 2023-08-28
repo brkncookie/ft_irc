@@ -3,6 +3,7 @@
 # include <iostream>
 # include <string>
 # include <vector>
+#include <sys/socket.h>
 # include "User.hpp"
 
 class Channel
@@ -38,6 +39,8 @@ class Channel
         void    setMaximumCapacity(size_t capacity);
         void    setInviteOnly(bool inviteOnly);
 	void    setTopicOpr(bool topicOpr);
+	void	distributeMsg(std::string msg);
+	std::string	getNicknames(void);
 };
 
 std::ostream&	operator<<(std::ostream& outputStream, const Channel& channel);

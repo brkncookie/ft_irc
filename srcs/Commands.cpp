@@ -174,68 +174,126 @@ void	Server::sendMsg(std::string &cmd, User *user)
 void	Server::joinChannel(std::string &cmd, User *user)
 {
 	std::string		target;
-	std::string		passowrd;
+	std::string		password;
 	std::stringstream	targets;
-	std::stringstream	passowrds;
+	std::stringstream	passwords;
 	bool			create;
 	std::vector<Channel *>::iterator itr;
+	std::string		reply;
+
+	std::cout << "cmd => " << cmd << std::endl;
+
+	passwords.str(cmd);
+	if (cmd[0] == ':')
+		passwords >> password;
+	passwords >> password;
+	passwords >> password;
+	passwords >> password;
+	if (!passwords.fail())
+	{
+		passwords.str(password);
+	}
+	else
+	{
+		passwords.str("");
+		password.assign("");
+		passwords.clear();
+	}
 
 	targets.str(cmd);
+	if (cmd[0] == ':')
+		targets >> target;
 	targets >> target;
 	targets >> target;
 	targets.str(target);
 
-	passowrds.str(cmd);
-	passowrds >> passowrd;
-	passowrds >> passowrd;
-	passowrds >> passowrd;
-	passowrds.str(passowrd);
 
-	while(std::getline(targets, target, ",") && !target.empty())
+	std::cout << "targets are: " << targets.str() << std::endl;
+	std::cout << "passowrds are: " << passwords.str() << std::endl;
+	while(std::getline(targets, target, ',') && !target.empty())
 	{
+		std::cout << "first target is: " <<  target << std::endl;
 		create = true;
-		for (int inx = 1; inx < target.size(); inx++)
+		for (size_t inx = 1; inx < target.size(); inx++)
 			target[inx] = std::tolower(target[inx]);
 		for (itr = this->_channels.begin(); itr != this->_channels.end(); itr++)
-			if (itr->getName() == target)
+			if ((*itr)->getName() == target)
 			{
 				create = false;
 				break;
 			}
 		if (!create)
 		{
-			std::getline(passowrds, password, ",");
-			if (!password.empty() && itr.getPassword() != passowrd)
+			std::getline(passwords, password, ',');
+			if (!password.empty() && (*itr)->getPassword() != password)
 			{
 				/* send a reply indicating that the password for the channel is incorrect */
+				reply = std::string(":").append(this->getName()) + std::string(" 475 ") + target \
+				+ std::string(" :Cannot join channel (+k)") + std::string("\r\n");
+				send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 				break;
 			}
-			if (itr->getUsers().size() + 1 > itr->getMaximumCapacity)
+			if ((*itr)->getUsers().size() + 1 > (*itr)->getMaximumCapacity())
 			{
 				/* send a reply indicating that the channel reached its maximum capacity */
+				reply = std::string(":").append(this->getName()) + std::string(" 471 ") + target \
+				+ std::string(" :Cannot join channel (+l)") + std::string("\r\n");
+				send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 				break;
 			}
-			if (itr->isInviteOnly)
+			if ((*itr)->isInviteOnly())
 			{
 				/* send a reply indicating that the channel is invite only */
+				reply = std::string(":").append(this->getName()) + std::string(" 473 ") + target \
+				+ std::string(" :Cannot join channel (+i)") + std::string("\r\n");
+				send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 				break;
 			}
-			itr->getUsers().push_back(user);
-			/* send the appropriate replies when a user succesufully joins */
+			(*itr)->getUsers().push_back(user);
+			/* broadcast the join command to all users in the channel */
+			reply = std::string(":").append(user->getNickname()) + "!" + user->getUsername() + "@" + \
+			user->getIpaddress() + " JOIN " + target + std::string("\r\n");
+			(*itr)->distributeMsg(reply);
+			/* send the channel topic to the user */
+			if(!(*itr)->getTopic().empty())
+			{
+				reply = std::string(":").append(this->getName()) + std::string(" 332 ") + target \
+				+ std::string(" :") + (*itr)->getTopic() + std::string("\r\n");
+				send(user->getUserfd(), reply.c_str(), reply.size(), 0);
+			}
+			/* send a list of users that are in the channel */
+			reply = std::string(":").append(this->getName()) + std::string(" 353 ") + user->getNickname() + " = "\
+			+ target + std::string(" :") + (*itr)->getNicknames() + std::string("\r\n");
+			send(user->getUserfd(), reply.c_str(), reply.size(), 0);
+			reply = std::string(":").append(this->getName()) + std::string(" 366 ") + user->getNickname() + " "\
+			+ target + std::string(" :End of /NAMES list.") + std::string("\r\n");
+			send(user->getUserfd(), reply.c_str(), reply.size(), 0);
+
 		}
 		else
 		{
 			Channel	*channel = new Channel();
-			channel.setName(target);
-			std::getline(passowrds, password, ",");
-			if (!password.empty)
-				channel.setPassword(password);
+			channel->setName(target);
+			std::getline(passwords, password, ',');
+			if (!password.empty())
+				channel->setPassword(password);
 			/* not sure yet of the default maximum capacity of a channel */
-			channel.setMaximumCapacity(1337);
-			channel.getUsers().push_back(user);
-			channel.getChanop().push_back(user);
+			channel->setMaximumCapacity(1337);
+			channel->getUsers().push_back(user);
+			channel->getChanop().push_back(user);
 			/* send the appropriate replies when a user succesufully create and joins */
 			this->_channels.push_back(channel);
+			/* broadcast the join command to all users in the channel */
+			reply = std::string(":").append(user->getNickname()) + "!" + user->getUsername() + "@" + \
+			user->getIpaddress() + " JOIN " + target + std::string("\r\n");
+			channel->distributeMsg(reply);
+			/* send a list of users that are in the channel */
+			reply = std::string(":").append(this->getName()) + std::string(" 353 ") + user->getNickname() + " = "\
+			+ target + std::string(" :") + channel->getNicknames() + std::string("\r\n");
+			send(user->getUserfd(), reply.c_str(), reply.size(), 0);
+			reply = std::string(":").append(this->getName()) + std::string(" 366 ") + user->getNickname() + " "\
+			+ target + std::string(" :End of /NAMES list.") + std::string("\r\n");
+			send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 		}
 	}
 }

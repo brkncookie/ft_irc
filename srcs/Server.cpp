@@ -157,9 +157,11 @@ int	Server::handleUser(int user_fd, sockaddr_in user_addr)
 	if (!(vec_of_strings = parseIRCmd(this->_users[user_fd])))
 		return (0);
 	strings = &(*vec_of_strings)[0];
-	for (unsigned int i = 0; i < vec_of_strings->size(); i++)
+	std::cout << vec_of_strings->size() << std::endl;
+	for (size_t i = 0; i < vec_of_strings->size(); i++)
 	{
 		/* loop through each line and identify the CMD in it to call the appropriate function for it */
+		std::cout << "strings: " << strings[i] << std::endl;
 		strm.str(strings[i]);
 		strm >> cmd;
 		if (cmd[0] == ':')
@@ -177,7 +179,12 @@ int	Server::handleUser(int user_fd, sockaddr_in user_addr)
 		else if (cmd == "PRIVMSG")
 			this->sendMsg(strings[i], this->_users[user_fd]);
 		else if (cmd == "JOIN")
+		{
+			print_timestamped();
+			std::cout << "User with descriptor " << user_fd << " requests joining a channel" << std::endl;
 			this->joinChannel(strings[i], this->_users[user_fd]);
+		}
 	}
+	delete vec_of_strings;
 	return (1);
 }

@@ -25,6 +25,11 @@ std::string                    Channel::getTopic() const
 {
 	return (this->_topic);
 }
+
+std::string                    Channel::getPassword() const
+{
+	return (this->_password);
+}
 size_t                          Channel::getMaximumCapacity() const
 {
 	return (this->_maximumCapacity);
@@ -80,4 +85,23 @@ void    Channel::setInviteOnly(bool inviteOnly)
 void    Channel::setTopicOpr(bool topicOpr)
 {
 	this->_topicOpr = topicOpr;
+}
+void	Channel::distributeMsg(std::string msg)
+{
+	for (std::vector<User *>::iterator itr = this->_users.begin();  itr != this->_users.end(); itr++)
+		send((*itr)->getUserfd(), msg.c_str(), msg.size(), 0);
+}
+
+std::string	Channel::getNicknames()
+{
+	std::string	nicknames;
+	for (std::vector<User *>::iterator itr = this->_users.begin();  itr != this->_users.end(); itr++)
+	{
+		if (!nicknames.empty())
+			nicknames += " ";
+		if (itr >= this->_chanop.begin() && itr < this->_chanop.end())
+			nicknames += "@";
+		nicknames += (*itr)->getNickname();
+	}
+	return (nicknames);
 }
