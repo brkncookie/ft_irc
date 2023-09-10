@@ -35,13 +35,14 @@ int main(int argc, char **argv)
             << "Proper usage: (./ircserv <PORT: Positive number> <PASSWORD: String>)"
             << std::endl,
             EXIT_FAILURE);
+    
     std::cout << "Port: "
         << port
         << "\nPassword: "
         << argv[2]
         << std::endl;
 
-    Server	server((size_t)port, std::string(argv[2]));
+    Server	server(static_cast<size_t>(port), std::string(argv[2]));
     server.startServer();
     return (0);
 }

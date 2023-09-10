@@ -1,4 +1,4 @@
-#include "../include/Server.hpp"
+#include "Server.hpp"
 
 std::vector<std::string> *Server::parseIRCmd(User *user)
 {
@@ -249,11 +249,11 @@ void	Server::joinChannel(std::string &cmd, User *user)
 				send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 				break;
 			}
-			(*itr)->getUsers().push_back(user);
+			(*itr)->addUser(user);
 			/* broadcast the join command to all users in the channel */
 			reply = std::string(":").append(user->getNickname()) + "!" + user->getUsername() + "@" + \
 			user->getIpaddress() + " JOIN " + target + std::string("\r\n");
-			(*itr)->distributeMsg(reply);
+			(*itr)->announce(reply);
 			/* send the channel topic to the user */
 			if(!(*itr)->getTopic().empty())
 			{
@@ -263,7 +263,7 @@ void	Server::joinChannel(std::string &cmd, User *user)
 			}
 			/* send a list of users that are in the channel */
 			reply = std::string(":").append(this->getName()) + std::string(" 353 ") + user->getNickname() + " = "\
-			+ target + std::string(" :") + (*itr)->getNicknames() + std::string("\r\n");
+			+ target + std::string(" :") + (*itr)->getUserNicknames() + std::string("\r\n");
 			send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 			reply = std::string(":").append(this->getName()) + std::string(" 366 ") + user->getNickname() + " "\
 			+ target + std::string(" :End of /NAMES list.") + std::string("\r\n");
@@ -279,17 +279,16 @@ void	Server::joinChannel(std::string &cmd, User *user)
 				channel->setPassword(password);
 			/* not sure yet of the default maximum capacity of a channel */
 			channel->setMaximumCapacity(1337);
-			channel->getUsers().push_back(user);
-			channel->getChanop().push_back(user);
+			channel->addUser(user, true);
 			/* send the appropriate replies when a user succesufully create and joins */
 			this->_channels.push_back(channel);
 			/* broadcast the join command to all users in the channel */
 			reply = std::string(":").append(user->getNickname()) + "!" + user->getUsername() + "@" + \
 			user->getIpaddress() + " JOIN " + target + std::string("\r\n");
-			channel->distributeMsg(reply);
+			channel->announce(reply);
 			/* send a list of users that are in the channel */
 			reply = std::string(":").append(this->getName()) + std::string(" 353 ") + user->getNickname() + " = "\
-			+ target + std::string(" :") + channel->getNicknames() + std::string("\r\n");
+			+ target + std::string(" :") + channel->getUserNicknames() + std::string("\r\n");
 			send(user->getUserfd(), reply.c_str(), reply.size(), 0);
 			reply = std::string(":").append(this->getName()) + std::string(" 366 ") + user->getNickname() + " "\
 			+ target + std::string(" :End of /NAMES list.") + std::string("\r\n");

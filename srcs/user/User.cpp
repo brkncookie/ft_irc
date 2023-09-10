@@ -1,4 +1,4 @@
-#include "../include/User.hpp"
+#include "User.hpp"
 
 User::User():_authenticated(false) {}
 
